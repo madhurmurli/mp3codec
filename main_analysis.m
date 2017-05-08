@@ -27,9 +27,9 @@ bark_lims=[100,200,300,400,510,630,770,920,1080,1270,1480,1720,2000,2320,2700,31
 %Compute tonal flags
 tonal_flags=zeros(size(adjusted_mag));
 tonal_mags=zeros(size(adjusted_mag));
-nm_location=zeros(length(bark_lims));
-nm_mag=zeros(length(bark_lims));
-
+bark_indexes=[];
+bark_mags=[];
+bark_counts=[];
 
 for i=1:length(tonal_flags)
     audio_segment=adjusted_mag(i,:);
@@ -42,20 +42,30 @@ for i=1:length(tonal_flags)
               tonal_mags(i,j)=audio_segment(1,j);                
             end
     end
-    [bark_index,bark_mag,bark_count] = calculate_nm(is_nm,audio_segment,bark_lims);
-    
+    %is_nm=ones(1,length(audio_segment));
+    [bark_index,bark_mag,bark_count] = calculate_nm(is_nm,audio_segment,bark_lims,fs/fft_size);
+    bark_indexes=[bark_indexes;bark_index];
+    bark_mags=[bark_mags;bark_mag];
+    bark_counts=[bark_counts; bark_count];
 end
+
 %%
-audio_segment=adjusted_mag(1,:);
-tonal_mag=tonal_mags(1,:);
+view_index=1;
+audio_segment=adjusted_mag(view_index,:);
+tonal_mag=tonal_mags(view_index,:);
 x_axis=1:256;
 x_axis=x_axis.*(fs/fft_size);
 x_axis=x_axis/1000;
+noise_indexes=bark_indexes(view_index,:);
+noise_indexes=noise_indexes.*(fs/(fft_size*1000));
+noise_mags=bark_mags(view_index,:);
 filtered_rows=find(tonal_mag>0);
 plot(x_axis,audio_segment);
 hold on;
 plot(x_axis(:,filtered_rows),tonal_mag(:,filtered_rows),'x');
 ylim([50 130]);
+hold on;
+plot(noise_indexes,noise_mags,'o');
 hold on;
 vline(bark_lims/1000);
 xlabel('Frequency (kHz)');
