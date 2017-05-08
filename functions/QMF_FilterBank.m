@@ -8,42 +8,54 @@ function S = QMF_FilterBank(inputAudio)
 %   See... Pg 15, Eq 2.1
 %
 
+
 % Input Arg Checkings
 frameSize = 1152;
+maxChans = 2;
 if size(inputAudio,2) ~= frameSize
     error('The QMF Filter Bank Algorithm requires an input frame of size %d samples.', frameSize);
+elseif size(inputAudio,1) > maxChans
+    error('The QMF Filter Bank Algorithm has a maximum of %d input audio channels.', maxChans);
 end
 
 
 % Algorithm Params
-nChannels = size(inputAudio,1);
-nGranuals = 2;
-nSubbands = 32;
-nIterations = 18;
-kSomething = 64;
+nChannels = size(inputAudio,1);                 % 1 = mono, 2 = stereo
+nGranuals = 2;                                  % 2 Granuals per Frame
+nSubbands = 32;                                 % Number of Filters in Filter Bank
+nIterations = 18;                               % Number of 512-point filters within a Granual
+kSomething = 64;                                % Still don't know... It's han_size / 8
 
-han_size = 512;
-gr_offset = 0;
-scale = 1;
+han_size = 512;                                 % Prototype LPF Order
+gr_offset = 0;                                  % ??
+scale = 1;                                      % ??
+
+
+% Initialize Filter State (must be persistent)
+persistent x;
+if isempty(x)
+    % Initialize the Filter State
+    x = zeros(maxChans, han_size);
+end
 
 
 % Allocate space for the output
 S = zeros(nChannels, nGranuals, nSubbands, nIterations);
 
 
-% Load the Prototype Filter
-h = load('prototypeFilter', 'filter');
-h = h.filter;
-
-
-% Get the first frame
-x = inputAudio(:, 1:han_size);
+% The prototype filter
+persistent h;
+if isempty(h)
+    % Load the prototype filter
+    h = load('prototypeFilter', 'filter');
+    h = h.filter;
+end
 
 
 % Calculate the Window
 c = zeros(1, length(h.Coefficients));
 for i = 1:length(c)
-    if mod(floor(i/kSomething),2)
+    if mod(floor(i/kSomething),2) == 1
         c(i) = -1 * h.Coefficients(i);
     else
         c(i) = h.Coefficients(i);
@@ -60,7 +72,7 @@ for i = 1:nSubbands
 end
 
 
-% 
+% Do the Filtering
 for gr = 1:nGranuals
     for ch = 1:nChannels
         for it = 0:nIterations-1
@@ -80,10 +92,6 @@ for gr = 1:nGranuals
             for i = 1:nSubbands
                 S(ch, gr, i, it+1) = sum(y.*M(i,:));
             end
-            
-            a = 6;
-            
-            
         end
     end
 end
