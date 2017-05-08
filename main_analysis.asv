@@ -33,17 +33,16 @@ nm_mag=zeros(length(bark_lims));
 
 for i=1:length(tonal_flags)
     audio_segment=adjusted_mag(i,:);
-    is_nm=ones(1,length(audio_segment));
     for j=2:length(audio_segment)-6
         %check for local maxima
-            cur_bark=getbark(j*(fs/fft_size),bark_lims);
-            [tonal_flags(i,j),is_nm]=tonal_test(audio_segment,j,is_nm);        
+        cur_bark=getbark(j*(fs/fft_size),bark_lims);
+            tonal_flags(i,j)=tonal_test(audio_segment,j);        
             if(tonal_flags(i,j)==1)
               tonal_mags(i,j)=audio_segment(1,j);                
             end
+     
+        
     end
-    [bark_index,bark_mag,bark_count] = calculate_nm(is_nm,audio_segment,bark_lims);
-    
 end
 %%
 audio_segment=adjusted_mag(1,:);
@@ -58,8 +57,7 @@ plot(x_axis(:,filtered_rows),tonal_mag(:,filtered_rows),'x');
 ylim([50 130]);
 hold on;
 vline(bark_lims/1000);
-xlabel('Frequency (kHz)');
-ylabel('Magnitude (dB)');
+
 %%
 
 
