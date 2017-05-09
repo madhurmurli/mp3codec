@@ -1,4 +1,50 @@
-[test_audio,fs]=audioread('EDM.wav');
+% MMI610 - MP3 Project
+% Madhur Murli & Evan Shenkman
+
+clear all;
+close all;
+
+% Setup the PATH
+addpath('audio', 'functions', 'resources');
+
+% Ask the user for the Audio file name
+fileToEncode = input('Please type the name of the audio you wish to encode.\n > ', 's');
+
+% Name the output file
+fileToWriteTo = input('Please enter the name of the file to write to.\n > ', 's');
+
+% For Development...
+if isempty(fileToEncode)
+    fileToEncode = 'EDM.wav';
+    fileToWriteTo = 'output.wav';
+end
+
+% Try to read the audio file
+try
+    [test_audio, fs] = audioread(fileToEncode);
+    test_audio = test_audio';
+catch
+    error('Could not find file: %s.\nPlease add the audio file to the audio directory.', fileToEncode);
+end
+
+% Break the audio into overlapping frames of 1152 points
+test_audio_frames = getFrames(test_audio);
+
+% Do the MP3 algorithm frame-by-frame
+for frameNumber = 1:size(test_audio_frames,2)
+    frame_audio = test_audio_frames(:, frameNumber, :);
+    
+    % DO PSYCHOACOUSTIC MODEL
+    % ...
+    
+    % HYBRID FILTERBANK
+    S = QMF_FilterBank(frame_audio);
+    
+    % MDCT
+    M = MDCT(S);
+end
+
+    
 test_audio_l=test_audio(:,1);
 test_audio_r=test_audio(:,2);
 n_framesize=512;

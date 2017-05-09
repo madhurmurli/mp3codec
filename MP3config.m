@@ -11,6 +11,9 @@ classdef MP3config
         % Frame Size (in samples)
         frameSize = 1152;
         
+        % Hop Size (in samples)
+        hopSize = 576;
+        
         % Granual Size (in samples)
         % 1/2 the Frame Size
         granualSize = 576;
