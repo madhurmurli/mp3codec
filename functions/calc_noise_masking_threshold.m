@@ -1,10 +1,10 @@
-function masking_thresh=calc_tonal_masking_threshold(tonal_thresholds,inc,bark_bands,masker_index,masker_power)
+function masking_thresh=calc_noise_masking_threshold(tonal_thresholds,inc,bark_bands,masker_index,masker_power)
     masking_thresh=zeros(1,length(tonal_thresholds));
     for i=1:length(tonal_thresholds)
         masker_bark=getbark2(masker_index*inc,bark_bands);
-        b=0.00275*(bark_bands(1,round(masker_bark)-1));
+        b=0.000175*(bark_bands(1,round(masker_bark)-1));
         %b=0;
-        masking_thresh(1,i)=masker_power-b-6.025;
+        masking_thresh(1,i)=masker_power-b-2.025;
         cur_bark=getbark2(i*inc,bark_bands);
         bark_diff=masker_bark-cur_bark;
         sf=0;
