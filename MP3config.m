@@ -23,6 +23,19 @@ classdef MP3config
         
         % ------------------------------------------------------
         
+        % PSYCHO ACOUSTIC MODEL PARAMETERS
+        
+        % FFT Size
+        fftSize = 1024;
+        
+        % dBSPL Bias
+        splBias = 90.3;
+        
+        % Bark Band Limits
+        barkBandLimits = [100,200,300,400,510,630,770,920,1080,1270,1480,1720,2000,2320,2700,3150,3700,4400,5300,6400,7700,9500,12000,15500,25000];
+        
+        % ------------------------------------------------------
+        
         % QMF_FILTERBANK PARAMETERS
         
         % Number of Filters in Filter Bank
