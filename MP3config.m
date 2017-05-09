@@ -63,6 +63,12 @@ classdef MP3config
         
         % Do Window Switching?
         doWindowSwitching = false;
+        
+        % ------------------------------------------------------
+        
+        % PLOTTING FLAGS
+        
+        % Plot a
     end
     
     methods

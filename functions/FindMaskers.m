@@ -1,7 +1,5 @@
-function [isTonalMasker, tonalMaskerMags, noiseMaskerLocsInBark, noiseMaskerMagsPerBark] = FindMaskers(fftFrame, fs)
+function [isTonalMasker, tonalMaskerMags, noiseMaskerLocsInBark, noiseMaskerMagsPerBark] = findMaskers(fftFrame, fs)
 %FINDMASKERS - Picks Tonal and Noise Maskers in a given frame
-%
-%   Detailed explanation goes here
 
 % Compute tonal flags
 isTonalFlags = zeros(size(fftFrame));
@@ -30,7 +28,8 @@ end
 [noiseMaskerLocsInBark, noiseMaskerMagsPerBark] = calculateNoiseMaskers(isNoiseMasker, fftFrame, fs);
 
 % Outputs...
-isTonalMasker = ~isNoiseMasker;
+%isTonalMasker = ~isNoiseMasker;
+isTonalMasker = isTonalFlags;
 
 end
 
