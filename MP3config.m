@@ -3,6 +3,8 @@ classdef MP3config
     %   Detailed explanation goes here
     
     properties (Constant)
+        % GLOBAL PARAMETERS
+        
         % The maximum number of audio channels
         maxChannels = 2;
         
@@ -15,6 +17,10 @@ classdef MP3config
         
         % Number of Granuals per Frame
         nGranualsPerFrame = 2;
+        
+        % ------------------------------------------------------
+        
+        % QMF_FILTERBANK PARAMETERS
         
         % Number of Filters in Filter Bank
         nFilters = 32;
@@ -31,6 +37,16 @@ classdef MP3config
         % Number of Filter Operations per Granual
         % GranualSize / QMFhop
         nFilterOperations = 18;
+        
+        % ------------------------------------------------------
+        
+        % MDCT PARAMETERS
+        
+        % MDCT Size
+        mdctSize = 36;
+        
+        % Do Window Switching?
+        doWindowSwitching = false;
     end
     
     methods
