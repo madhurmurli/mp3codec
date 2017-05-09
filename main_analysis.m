@@ -32,7 +32,7 @@ test_audio_frames = getFrames(test_audio);
 
 % Do the MP3 algorithm frame-by-frame
 for frameNumber = 1:size(test_audio_frames,2)
-    frame_audio = test_audio_frames(:, frameNumber, :);
+    frame_audio = squeeze(test_audio_frames(:, frameNumber, :));
     
     % DO PSYCHOACOUSTIC MODEL
     % ...
@@ -44,7 +44,7 @@ for frameNumber = 1:size(test_audio_frames,2)
     M = MDCT(S);
 end
 
-    
+test_audio = test_audio';
 test_audio_l=test_audio(:,1);
 test_audio_r=test_audio(:,2);
 n_framesize=512;
@@ -83,8 +83,8 @@ for i=1:length(tonal_flags)
     is_nm=ones(1,length(audio_segment));
     for j=2:length(audio_segment)-6
         %check for local maxima
-        cur_bark=getbark(j*(fs/fft_size),bark_lims);
-        [tonal_flags(i,j),is_nm]=tonal_test(audio_segment,j,is_nm);
+        cur_bark=getBarkBandNumber(j*(fs/fft_size));
+        [tonal_flags(i,j),is_nm]=tonalMaskerTest(audio_segment,j,is_nm);
         if(tonal_flags(i,j)==1)
             t_mag=0;
             for k=-1:1:1
@@ -95,7 +95,7 @@ for i=1:length(tonal_flags)
         end
     end
     %is_nm=ones(1,length(audio_segment));
-    [bark_index,bark_mag,bark_count] = calculate_nm(is_nm,audio_segment,bark_lims,fs/fft_size);
+    [bark_index,bark_mag,bark_count] = calculateNoiseMaskers(is_nm, audio_segment, fs);
     bark_indexes=[bark_indexes;bark_index];
     bark_mags=[bark_mags;bark_mag];
     bark_counts=[bark_counts; bark_count];

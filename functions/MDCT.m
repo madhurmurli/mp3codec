@@ -40,8 +40,9 @@ persistent S_prev;
 
 % Inputs and Outputs
 mdctInput = zeros(1, MP3config.mdctSize);
-mdctOutput = zeros(size(S,1), size(S,2), size(S,3), 3, size(S,4)/2);
+mdctOutput = zeros(size(S,1), size(S,2), size(S,3), 3, size(S,4));
 X = zeros(1, MP3config.mdctSize/2);
+n = 0:35;
 
 % For each granual...
 for gr = 1:MP3config.nGranualsPerFrame
@@ -78,7 +79,9 @@ for gr = 1:MP3config.nGranualsPerFrame
                 % Do the DCT for each short window
                 for w = 1:3
                     for k = 0:17
-                        X(k+1) = sqrt(2/32) * mdctInput .* curWindow(w,:) .* cos((n + (32 + 1)/2)*(k + 0.5)*pi/32);
+%                         for n = 0:35
+                            X(k+1) = sqrt(2/32) * sum(mdctInput .* curWindow(w,:) .* cos((n + (32 + 1)/2)*(k + 0.5)*pi/32));
+%                         end
                     end
                     mdctOutput(ch, gr, band, w, :) = X;
                 end
@@ -86,7 +89,7 @@ for gr = 1:MP3config.nGranualsPerFrame
                 % Do the DCT
                 X = zeros(1, 18);
                 for k = 0:17
-                    X(k+1) = sqrt(2/32) * mdctInput .* curWindow .* cos((n + (32 + 1)/2)*(k + 0.5)*pi/32);
+                    X(k+1) = sqrt(2/32) * sum(mdctInput .* curWindow .* cos((n + (32 + 1)/2)*(k + 0.5)*pi/32));
                 end
                 mdctOutput(ch, gr, band, 1, :) = X;
             end

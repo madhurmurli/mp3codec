@@ -76,7 +76,7 @@ end
 % Do the Filtering             %%
 
 % For each Granual...
-for gr = 1:MP3config.nGranuals
+for gr = 1:MP3config.nGranualsPerFrame
     if gr == 1
         gr_offset = 0;
     else
@@ -92,7 +92,7 @@ for gr = 1:MP3config.nGranuals
             % Remove old data
             x(ch, MP3config.QMFsize:-1:MP3config.QMFhop+1) = x(ch, MP3config.QMFsize-MP3config.QMFhop:-1:1);
             % Add new data
-            x(ch, MP3config.QMFhop:-1:1) = inputAudio(ch, gr_offset+it*QMFhop+1:gr_offset+(it+1)*QMFhop);
+            x(ch, MP3config.QMFhop:-1:1) = inputAudio(ch, gr_offset+it*MP3config.QMFhop+1:gr_offset+(it+1)*MP3config.QMFhop);
             
             % Apply the Window C to Data Vector X
             z = x(ch, :).*c;
