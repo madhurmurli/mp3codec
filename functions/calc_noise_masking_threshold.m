@@ -2,6 +2,9 @@ function masking_thresh=calc_noise_masking_threshold(tonal_thresholds,inc,bark_b
     masking_thresh=zeros(1,length(tonal_thresholds));
     for i=1:length(tonal_thresholds)
         masker_bark=getbark2(masker_index*inc,bark_bands);
+        if(masker_bark<1)
+            masker_bark=2;
+        end
         b=0.000175*(bark_bands(1,round(masker_bark)-1));
         %b=0;
         masking_thresh(1,i)=masker_power-b-2.025;

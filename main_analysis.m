@@ -95,10 +95,9 @@ for i=1:length(tonal_flags)
         end
     end
     %is_nm=ones(1,length(audio_segment));
-    [bark_index,bark_mag,bark_count] = calculateNoiseMaskers(is_nm, audio_segment, fs);
+    [bark_index,bark_mag] = calculateNoiseMaskers(is_nm, audio_segment, fs);
     bark_indexes=[bark_indexes;bark_index];
     bark_mags=[bark_mags;bark_mag];
-    bark_counts=[bark_counts; bark_count];
 end
 
 %%
@@ -166,7 +165,7 @@ for i=1:length(tonal_flags)
     cur_bark=1;
     for j=1:length(tonal_mag)
         f=(fs/fft_size)*j;
-        bark=getbark(f,bark_lims);
+        bark=getBarkBandNumber(f);
         cur_mag=tonal_mag(1,j);
         if(bark==cur_bark)
             if(cur_mag>loc_max)
@@ -177,8 +176,15 @@ for i=1:length(tonal_flags)
                 decimation_thresh_mags(i,j)=0;
             end
         else
-            bark_maskers(i,cur_bark)=loc_max;
-            bark_locs(i,cur_bark)=max_loc;
+            if(cur_mag>loc_max)
+                bark_maskers(i,cur_bark)=cur_mag;
+                bark_locs(i,cur_bark)=j;
+            else
+                bark_maskers(i,cur_bark)=loc_max;
+                bark_locs(i,cur_bark)=max_loc;
+            end
+        
+            
             loc_max=0;
             max_loc=1;
             cur_bark=cur_bark+1;
@@ -283,7 +289,7 @@ end
     
     for j=1:length(TM_indexes)
         
-        if(bark_maskers(i,j)>0&&TM_indexes(1,j)>1)
+        if(bark_maskers(i,j)>0&&TM_indexes(1,j)>0)
             masking_thresh=calc_tonal_masking_threshold(tonal_mag,fs/fft_size,bark_lims,TM_indexes(1,j),bark_maskers(i,j));
             TM_masking_thresholds=[TM_masking_thresholds ;masking_thresh];    
         end
@@ -293,7 +299,7 @@ end
    NM_masking_thresholds=[];
    %bark indexes and bark mags
    for j=1:length(NM_indexes)
-         if(bark_mags(i,j)>0&&NM_indexes(1,j)>1)
+         if(bark_mags(i,j)>0&&NM_indexes(1,j)>0)
             masking_thresh=calc_noise_masking_threshold(tonal_mag,fs/fft_size,bark_lims,NM_indexes(1,j),bark_mags(i,j));
             NM_masking_thresholds=[NM_masking_thresholds ;masking_thresh];            
         end
@@ -338,16 +344,16 @@ hold on;
 % hold on;
 vline(getbark2(bark_lims,bark_lims));
 hold on;
-
-for p=1:size(TM_masking_thresholds,1)
-    plot(x_axis_bark,TM_masking_thresholds(p,:));
-    hold on;
-end
-
-% for p=1:size(NM_masking_thresholds,1)
-%         plot(x_axis_bark,NM_masking_thresholds(p,:));
+% 
+% for p=1:size(TM_masking_thresholds,1)
+%     plot(x_axis_bark,TM_masking_thresholds(p,:));
 %     hold on;
 % end
+
+for p=1:size(NM_masking_thresholds,1)
+        plot(x_axis_bark,NM_masking_thresholds(p,:));
+    hold on;
+end
 hold off;
 ylim([0 150]);
 xlabel('Barks');
