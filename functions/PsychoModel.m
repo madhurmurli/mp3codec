@@ -24,7 +24,10 @@ fftFrameMags = MP3config.splBias + 20.*log10(abs(fftFrame));
 fftFrameMags = fftFrameMags(:, 1:MP3config.fftSize/2);
 
 % Find the Maskers
-[isTonalMasker, tonalMaskerMags, noiseMaskerLocsInBark, noiseMaskerMagsPerBark] = FindMaskers(fftFrameMags, fs);
+[isTonalMasker, tonalMaskerMags, noiseMaskerLocsInBark, noiseMaskerMagsPerBark] = findMaskers(fftFrameMags, fs);
+
+% Remove the inaudible Maskers
+[isTonalMasker, tonalMaskerMags] = removeMaskers(isTonalMasker, tonalMaskerMags, fs);
 
 end
 
