@@ -10,94 +10,106 @@ function S = QMF_FilterBank(inputAudio)
 
 
 % Input Arg Checkings
-frameSize = 1152;
-maxChans = 2;
-if size(inputAudio,2) ~= frameSize
-    error('The QMF Filter Bank Algorithm requires an input frame of size %d samples.', frameSize);
-elseif size(inputAudio,1) > maxChans
-    error('The QMF Filter Bank Algorithm has a maximum of %d input audio channels.', maxChans);
+if size(inputAudio,2) ~= MP3config.frameSize
+    error('The QMF Filter Bank Algorithm requires an input frame of size %d samples.', MP3config.frameSize);
+elseif size(inputAudio,1) > MP3config.maxChannels
+    error('The QMF Filter Bank Algorithm has a maximum of %d input audio channels.', MP3config.maxChannels);
 end
 
 
 % Algorithm Params
 nChannels = size(inputAudio,1);                 % 1 = mono, 2 = stereo
-nGranuals = 2;                                  % 2 Granuals per Frame
-nSubbands = 32;                                 % Number of Filters in Filter Bank
-nIterations = 18;                               % Number of 512-point filters within a Granual
 kSomething = 64;                                % Still don't know... It's han_size / 8
 
-han_size = 512;                                 % Prototype LPF Order
-gr_offset = 0;                                  % ??
-scale = 1;                                      % ??
+
+% Allocate space for the output
+S = zeros(MP3config.maxChannels, ...
+          MP3config.nGranualsPerFrame, ...
+          MP3config.nSubbands, ...
+          MP3config.nFilterOperations);
 
 
 % Initialize Filter State (must be persistent)
 persistent x;
 if isempty(x)
     % Initialize the Filter State
-    x = zeros(maxChans, han_size);
+    x = zeros(MP3config.maxChannels, MP3config.QMFsize);
 end
 
 
-% Allocate space for the output
-S = zeros(nChannels, nGranuals, nSubbands, nIterations);
-
-
-% The prototype filter
+% The Prototype LPF
+% Designed using "designfilt"
 persistent h;
 if isempty(h)
-    % Load the prototype filter
+    % Load the Prototype Filter
     h = load('prototypeFilter', 'filter');
     h = h.filter;
 end
 
 
-% Calculate the Window
-c = zeros(1, length(h.Coefficients));
-for i = 1:length(c)
-    if mod(floor(i/kSomething),2) == 1
-        c(i) = -1 * h.Coefficients(i);
-    else
-        c(i) = h.Coefficients(i);
+% Calculate the Window vector
+persistent c;
+if isempty(c)
+    c = zeros(1, length(h.Coefficients));
+    for i = 1:length(c)
+        if mod(floor(i/kSomething),2) == 1
+            c(i) = -1 * h.Coefficients(i);
+        else
+            c(i) = h.Coefficients(i);
+        end
     end
 end
 
 
 % Calculate the Cosine Modulation Matrix
-M = zeros(nSubbands, kSomething);
-for i = 1:nSubbands
-    for k = 1:kSomething
-        M(i,k) = cos((2*i + 1)*(k-16)*pi/64);
+persistent M;
+if isempty(M)
+    M = zeros(MP3config.nSubbands, kSomething);
+    for i = 1:MP3config.nSubbands
+        for k = 1:kSomething
+            M(i,k) = cos((2*i + 1)*(k-16)*pi/64);
+        end
     end
 end
 
+% -------------------------------
+% Do the Filtering             %%
 
-% Do the Filtering
-for gr = 1:nGranuals
+% For each Granual...
+for gr = 1:MP3config.nGranuals
+    if gr == 1
+        gr_offset = 0;
+    else
+        gr_offset = MP3config.granualSize;
+    end
+        
+    % For each Channel...
     for ch = 1:nChannels
-        for it = 0:nIterations-1
-            x(ch, han_size:-1:nSubbands+1) = x(ch, han_size-nSubbands:-1:1);
-            x(ch, nSubbands:-1:1) = inputAudio(ch, gr_offset+it*nSubbands+1:gr_offset+(it+1)*nSubbands)/scale;
+        
+        % Complete one filtering operation
+        for it = 0:MP3config.nFilterOperations-1
+            % Slide the QMF Window over the Granual, shifting out old data with new data
+            % Remove old data
+            x(ch, MP3config.QMFsize:-1:MP3config.QMFhop+1) = x(ch, MP3config.QMFsize-MP3config.QMFhop:-1:1);
+            % Add new data
+            x(ch, MP3config.QMFhop:-1:1) = inputAudio(ch, gr_offset+it*QMFhop+1:gr_offset+(it+1)*QMFhop);
             
-            % Apply the Window C to vector X
+            % Apply the Window C to Data Vector X
             z = x(ch, :).*c;
             
             % Calculate y
             y = zeros(1, kSomething);
             for i = 1:kSomething
-                y(i) = sum(z(i:kSomething:han_size));
+                y(i) = sum(z(i:kSomething:MP3config.QMFsize));
             end
             
             % Calculate the 32 subband samples
-            for i = 1:nSubbands
+            for i = 1:MP3config.nSubbands
                 S(ch, gr, i, it+1) = sum(y.*M(i,:));
             end
         end
     end
 end
-            
-        
-
 
 end
 
