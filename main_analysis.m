@@ -279,11 +279,77 @@ end
     
     tonal_mag=decimation_thresh_mags(i,:);
     TM_indexes=reindexed_TM_indexes(i,:);
-   masking_thresholds={};
+   TM_masking_thresholds=[];
     
     for j=1:length(TM_indexes)
-        if(decimation_thresh_mags(i,j)>0&&TM_indexes(1,j)>0)
-           masking_thresh=calc_tonal_masking_threshold(tonal_mag,fs/fft_size,bark_lims,TM_indexes(1,j),decimation_thresh_mags(i,j));
-            masking_thresholds{j}=masking_thresh;
+        
+        if(bark_maskers(i,j)>0&&TM_indexes(1,j)>1)
+            masking_thresh=calc_tonal_masking_threshold(tonal_mag,fs/fft_size,bark_lims,TM_indexes(1,j),bark_maskers(i,j));
+            TM_masking_thresholds=[TM_masking_thresholds ;masking_thresh];
+            
         end
+        
     end
+    NM_indexes=reindexed_NM_indexes(i,:);
+   NM_masking_thresholds=[];
+   %bark indexes and bark mags
+   for j=1:length(NM_indexes)
+         if(bark_mags(i,j)>0&&NM_indexes(1,j)>1)
+            masking_thresh=calc_noise_masking_threshold(tonal_mag,fs/fft_size,bark_lims,NM_indexes(1,j),bark_mags(i,j));
+            NM_masking_thresholds=[NM_masking_thresholds ;masking_thresh];            
+        end
+   end
+   
+ %%
+  
+   
+   view_index=1;
+audio_segment=adjusted_mag(view_index,:);
+tonal_mag=decimation_thresh_mags(view_index,:);
+x_axis=1:256;
+x_axis=x_axis.*(fs/fft_size);
+x_axis=x_axis/1000;
+x_axis_2=30:50:20000;
+threshold_hearing=[];
+hearing_masking=[];
+for i=1:length(x_axis_2)
+    f=x_axis_2(1,i)/1000;
+    t=3.64*(f^-0.8)-6.5*exp(-0.6*((f-3.33)^2))+1e-3*(f^4);
+    threshold_hearing=[threshold_hearing t];
+    if(i<=length(x_axis))
+        f2=x_axis(1,i);
+        t2=3.64*(f2^-0.8)-6.5*exp(-0.6*((f2-3.33)^2))+1e-3*(f2^4);
+        hearing_masking=[hearing_masking t2];
+    end
+end
+
+noise_indexes=bark_indexes(view_index,:);
+noise_indexes=noise_indexes.*(fs/(fft_size*1000));
+noise_mags=bark_mags(view_index,:);
+filtered_rows=find(tonal_mag>0);
+plot(x_axis,audio_segment);
+hold on;
+plot(x_axis(:,filtered_rows),tonal_mag(:,filtered_rows),'x');
+%ylim([50 130]);
+hold on;
+plot(noise_indexes,noise_mags,'o');
+hold on;
+% plot(x_axis_2/1000,threshold_hearing,'-');
+% hold on;
+vline(bark_lims/1000);
+hold on;
+
+% for p=1:size(TM_masking_thresholds,1)
+%     plot(x_axis,TM_masking_thresholds(p,:));
+%     hold on;
+% end
+
+for p=1:size(NM_masking_thresholds,1)
+        plot(x_axis,NM_masking_thresholds(p,:));
+    hold on;
+end
+hold off;
+ylim([0 150]);
+xlabel('Frequency (kHz)');
+ylabel('Magnitude (dB)');
+   
